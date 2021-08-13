@@ -29,9 +29,11 @@ for line in stdin:
     else:
         assembler(line)  # perform some assembly(s) on given string
 
-user_input = input("Give input here")
-semantics_op_dict = {'st': '00101', 'ld': '00101', 'add': '00000', 'sub': '00001', 'mul': '00110', 'xor': '01010', 'or': '01011', 'and': '01100', 'div': '00111', 'rs': '01000', 'ls': '01001', 'not': '01101', 'cmp': '01110', 'jmp': '01111', 'jlt': '10000','jgt': '10001', 'je': '10010', 'hlt':'10011'}
-register_address = {"R0": "000", "R1": "001", "R2": "010", "R3": "011", "R4": "100", "R5": "101", "R6": "110", "FLAGS": "111"}
+semantics_op_dict = {'st': '00101', 'ld': '00101', 'add': '00000', 'sub': '00001', 'mul': '00110', 'xor': '01010',
+                     'or': '01011', 'and': '01100', 'div': '00111', 'rs': '01000', 'ls': '01001', 'not': '01101',
+                     'cmp': '01110', 'jmp': '01111', 'jlt': '10000', 'jgt': '10001', 'je': '10010', 'hlt': '10011'}
+register_address = {"R0": "000", "R1": "001", "R2": "010", "R3": "011", "R4": "100", "R5": "101", "R6": "110",
+                    "FLAGS": "111"}
 
 error_mapping = {0: "No error", 1: "Typos in instruction name or register name", 2: "Use of undefined variables",
                  3: "Use of undefined labels", 4: "Illegal use of FLAGS register",
@@ -42,7 +44,6 @@ error_mapping = {0: "No error", 1: "Typos in instruction name or register name",
 
 
 def assembler(user_input):
-
     # value Initialisation
     reg1, reg2, reg3, reg4, mem_addr, imm = 0
     error = 0
@@ -131,3 +132,5 @@ def assembler(user_input):
         print(this_assembly_code)
     else:
         print(f'{this_assembly_code} shows error: {error_mapping[error]}')
+
+
