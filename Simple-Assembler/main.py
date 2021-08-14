@@ -1,4 +1,9 @@
 import sys
+from inspect import currentframe
+
+def get_linenumber():
+    cf = currentframe()
+    return cf.f_back.f_lineno
 
 # initialising the values
 variables = {}
@@ -52,6 +57,7 @@ for i in range(len(source_code)):
     if code_pro[0][-1] == ":":
         labels[code_pro[0][:-1]] = i
         
+
 # gives error if the last entry is not halt
 if source_code[-1] != "hlt":
     print(f'The code generates error: Missing hlt instruction at end')
@@ -84,6 +90,9 @@ def assembler(user_input):
 
 
     # Checking semantics type & OP code
+    if ':' in user_input:
+        user_input = user_input[user_input.find(':')+1:].strip()
+
     syntax = user_input.split()
     instruction_name = syntax[0]
     if instruction_name in semantics_op_dict:
@@ -91,9 +100,7 @@ def assembler(user_input):
         #print(f"{op_code=}")
         assembly_code.append(op_code)
     else:
-        error = 1
-        print(f'{user_input} generates error: {error_mapping[error]}') 
-        exit()
+        error(user_input, 1, get_linenumber())
 
     # differentiate between 2 mov conditions (type B and C)
     if op_code == "00010":
@@ -106,21 +113,17 @@ def assembler(user_input):
     # A
     elif op_code == "00000" or op_code == "00001" or op_code == "00110" or op_code == "01010" or op_code == "01011" or op_code == "01100":
         if len(syntax) != 4:
-            error = 12
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 12, get_linenumber())
 
         reg1 = syntax[1]
         reg2 = syntax[2]
         reg3 = syntax[3]
         if reg1 == "FLAGS" or reg2 == "FLAGS" or reg3 == "FLAGS":
-            error = 4
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 4, get_linenumber())
+
         if reg1 not in register_address or reg2 not in register_address or reg3 not in register_address:
-            error = 1
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 1, get_linenumber())
+
         assembly_code.append("00")
         assembly_code.append(register_address[reg1])
         assembly_code.append(register_address[reg2])
@@ -131,31 +134,23 @@ def assembler(user_input):
     # B
     elif op_code == "01000" or op_code == "01001" or op_code == "00010":
         if len(syntax) != 3:
-            error = 12
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 12, get_linenumber())
 
         reg1 = syntax[1]
         imm = syntax[2]
         if reg1 == "FLAGS":
-            error = 4
-            print(f'{user_input} shows error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 4, get_linenumber())
+
         if reg1 not in register_address:
-            error = 1
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 1, get_linenumber())
+
         try:
             imm1= int(imm[1:])
         except Exception as e:
-            error = 10
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 10, get_linenumber())
 
         if imm1<0 or imm1>255:
-            error = 5
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 5, get_linenumber())
 
         assembly_code.append(register_address[reg1])
         assembly_code.append(format(int(imm[1:]), "08b"))
@@ -165,20 +160,14 @@ def assembler(user_input):
     # C
     elif op_code == "00010" or op_code == "01101" or op_code == "01110" or op_code == "00111":
         if len(syntax) != 3:
-            error = 12
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 12, get_linenumber())
 
         reg1 = syntax[1]
         reg2 = syntax[2]
         if reg1 == "FLAGS" or reg2 == "FLAGS":
-            error = 4
-            print(f'{user_input} shows error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 4, get_linenumber())
         if reg1 not in register_address or reg2 not in register_address:
-            error = 1
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 1, get_linenumber())
         assembly_code.append("00000")
         assembly_code.append(register_address[reg1])
         assembly_code.append(register_address[reg2])
@@ -188,29 +177,19 @@ def assembler(user_input):
     # D
     elif op_code == "00100" or op_code == "00101":
         if len(syntax) != 3:
-            error = 12
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 12, get_linenumber())
         reg1 = syntax[1]
         value = syntax[2]
         if value in variables:
             mem_addr = variables[value]
         elif value in labels:
-            error = 6
-            print(f'{user_input} shows error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 6, get_linenumber())
         else:
-            error = 2
-            print(f'{user_input} shows error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 2, get_linenumber())
         if reg1 == "FLAGS":
-            error = 4
-            print(f'{user_input} shows error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 4, get_linenumber())
         if reg1 not in register_address:
-            error = 1
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 1, get_linenumber())
         assembly_code.append(register_address[reg1])
         assembly_code.append((int(mem_addr), "08b"))
 
@@ -219,16 +198,12 @@ def assembler(user_input):
     # E
     elif op_code == '01111' or op_code == "10000" or op_code == "10001" or op_code == "10010":
         if len(syntax) != 2:
-            error = 12
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 12, get_linenumber())
 
         mem_addr = syntax[1]
 
         if mem_addr not in labels:
-            error = 3
-            print(f'{user_input} generates error: {error_mapping[error]}') 
-            exit()
+            error(user_input, 3, get_linenumber())
 
         assembly_code.append("000")
         assembly_code.append(labels[mem_addr])
@@ -249,13 +224,34 @@ for code_pro_max in source_code:
 this_assembly_code = ""
 for i in range(len(binary_byte_code)):
     #this_assembly_code += ''.join(binary_byte_code[i]) + ""
-    this_assembly_code += ''.join(binary_byte_code[i]) + "\n"
+    try:
+        this_assembly_code += ''.join(binary_byte_code[i]) + "\n"
+    except Exception as e:
+        print("yolo wut this.")
+        print(f"{binary_byte_code=}")
+        print(f"{i=}")
+        print(f"{binary_byte_code})
 
 # error detection and syntax printing
 print(this_assembly_code)
-
 
 print("DEBUG OUTPUT")
 #print(f"{binary_byte_code=}")
 print(f"{variables}")
 print(f"{labels=}")
+
+
+def error(user_input, error_code, line_number):
+    print(f'{user_input} generates error: {error_mapping[error]}') 
+    print(f'Error generated at {line_number=}.')
+    exit()
+
+'''
+# Remove label
+asm_string = "label: mov R3 R2"
+print(f"{asm_string=}")
+if ':' in asm_string:
+    print(f"{asm_string[asm_string.find(':')+1:].strip()=}")
+else:
+    print(f"{asm_string=}")
+'''
