@@ -276,10 +276,10 @@ for i in range(len(binary_byte_code)):
 # error detection and syntax printing
 print(this_assembly_code)
 
-print("DEBUG OUTPUT")
+'''print("DEBUG OUTPUT")
 #print(f"{binary_byte_code=}")
 print(f"{variables}")
-print(f"{labels=}")
+print(f"{labels=}")'''
 
 '''
 # Remove label
