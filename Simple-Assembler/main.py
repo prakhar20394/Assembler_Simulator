@@ -38,6 +38,25 @@ error_mapping = {0: "No error", 1: "Typos in instruction name or register name o
                  12: "Not enough arguments", 13: "Label already exists", 14: "Empty variable condition",            \
                  15: "Empty label condition", 16: "Memory address is not numerical"}
 
+# gives error if the last entry is not halt
+if source_code[-1] != "hlt":
+    if ":" in source_code[-1]:
+        code_pro_max_T = source_code[-1].split()
+        if code_pro_max_T[-1] != 'hlt':
+            print(f'The code generates error: Missing hlt instruction at end')
+            exit()
+    else:
+        print(f'The code generates error: Missing hlt instruction at end')
+        exit()
+
+#checks if there is halt in between
+for i in range(len(source_code)):
+    
+    if source_code[i] == "hlt":
+        if i != (len(source_code) - 1):
+            print(f'The code generates error: hlt not being used as the last instruction(used in between)')
+            exit()
+
 # variables 
 counter = 0
 syntax_count = len(source_code)
@@ -54,9 +73,7 @@ for i in range(syntax_count):
         except Exception as e:
             print(e)
             print(f'Variable generates error: Empty variable condition') 
-            exit()
-
-        
+            exit()      
     #elif source_code[i][0] in semantics_op_dict:
     else:
         break
@@ -82,21 +99,6 @@ for i in range(len(source_code)):
             exit()
         
 
-# gives error if the last entry is not halt
-if source_code[-1] != "hlt":
-    if ":" in source_code[-1]:
-        code_pro_max_T = source_code[-1].split()
-        if code_pro_max_T[-1] != 'hlt':
-            print(f'The code generates error: Missing hlt instruction at end')
-            exit()
-
-#checks if there is halt in between
-for i in range(len(source_code)):
-    
-    if source_code[i] == "hlt":
-        if i != (len(source_code) - 1):
-            print(f'The code generates error: hlt not being used as the last instruction(used in between)')
-            exit()
 
 
 def assembler(user_input):
