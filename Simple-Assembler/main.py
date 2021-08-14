@@ -5,6 +5,8 @@ def get_linenumber():
     cf = currentframe()
     return cf.f_back.f_lineno
 
+#def exit():
+#   print("Exit was called")
 
 def outputError(user_input, error_code, line_number):
     print(f'{user_input} generates error: {error_mapping[error_code]}') 
@@ -48,8 +50,9 @@ for i in range(syntax_count):
                 counter += 1
             else:
                 print(f'Variable generates error: Variable already defined') 
-            exit()
-        except:
+                exit()
+        except Exception as e:
+            print(e)
             print(f'Variable generates error: Empty variable condition') 
             exit()
 
@@ -272,15 +275,15 @@ for i in range(len(binary_byte_code)):
     this_assembly_code += ''.join(binary_byte_code[i]) + "\n"
     # If this line is throwing error, its not because its wrong
     # its because assembler() return wrong output. fix assembler()
-
+'''
 # error detection and syntax printing
 print(this_assembly_code)
 
-'''print("DEBUG OUTPUT")
+print("DEBUG OUTPUT")
 #print(f"{binary_byte_code=}")
 print(f"{variables}")
-print(f"{labels=}")'''
-
+print(f"{labels=}")
+'''
 '''
 # Remove label
 asm_string = "label: mov R3 R2"
