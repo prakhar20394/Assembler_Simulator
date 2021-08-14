@@ -46,7 +46,7 @@ for i in range(syntax_count):
     if temp_array[0] == "var":
         try:
             if temp_array[1] not in variables:
-                variables[temp_array[1]] = format(syntax_count + counter, "08b")
+                variables[temp_array[1]] = format(syntax_count + counter -1, "08b")
                 counter += 1
             else:
                 print(f'Variable generates error: Variable already defined') 
