@@ -1,16 +1,12 @@
-from sys import stdin
+import sys
 
 # initialising the values
 variables = {}
 labels = {}
-halt = False
-address = 0
-line_num = 0
 
 source_code = sys.stdin.read().split("\n")
 # remove blank lines, returns a list
 source_code = [k.strip() for k in source_code if k.strip() != '']
-
 
 semantics_op_dict = {'st': '00101', 'ld': '00100', 'add': '00000', 'sub': '00001', 'mul': '00110', 'xor': '01010',  \
                      'or': '01011', 'and': '01100', 'div': '00111', 'rs': '01000', 'ls': '01001', 'not': '01101',   \
@@ -24,24 +20,24 @@ error_mapping = {0: "No error", 1: "Typos in instruction name or register name",
                  5: "Illegal Immediate values (less than 0 or more than 255)",                                      \
                  6: "Misuse of labels as variables or vice-versa", 7: "Variables not declared at the beginning",    \
                  8: "Missing hlt instruction", 9: "hlt not being used as the last instruction",                     \
-                 10: "Wrong syntax used for instructions"                                                           \
-                 11: "Immediate is not numerical"}                                                                  \
-                 12: "Not enough arguments"
+                 10: "Wrong syntax used for instructions",                                                          \
+                 11: "Immediate is not numerical",                                                                  \
+                 12: "Not enough arguments"}
 
-# variables
+# variables 
 counter = 0
-
 syntax_count = len(source_code)
-
-for i in range(len(source_code)):
+for i in range(syntax_count):
     temp_array = source_code[i].split()
     if temp_array[0] == "var":
         variables[temp_array[1]] = format(syntax_count + counter, "08b")
         counter += 1
-    elif source_code[i][0] in semantics_op_dict:
+    #elif source_code[i][0] in semantics_op_dict:
+    else:
         break
 
 source_code = source_code[i:]
+syntax_count = len(source_code)
 
 for i in range(syntax_count):
     temp_array = source_code[i].split()
@@ -62,33 +58,37 @@ if source_code[-1] != "hlt":
     exit()
 
 #checks if there is halt in between
-for i in source_code:
-    if i == "hlt"
-
-binary_byte_code = []
-for code_pro_max in source_code:
-    binary_byte_code.extend(assembler(code_pro_max))
-
-# print, store
-this_assembly_code = ""
-for i in range(len(binary_byte_code)):
-    this_assembly_code += ''.join(binary_byte_code[i]) + '\n'
-
-# error detection and syntax printing
-print(this_assembly_code)
+for i in range(len(source_code)):
+    
+    if source_code[i] == "hlt":
+        if i != (len(source_code) - 1):
+            error = 9
+            print(f'The code {source_code[i]} generates error: hlt not being used as the last instruction')
+            exit() 
 
 def assembler(user_input):
     # value Initialisation
+    #print(f"{source_code=}")
     reg1, reg2, reg3, reg4, mem_addr, imm = 0,0,0,0,0,0
     error = 0
     assembly_code = []
-    assembly_code_order = []
+
+    error_mapping = {0: "No error", 1: "Typos in instruction name or register name", 2: "Use of undefined variables",   \
+                     3: "Use of undefined labels", 4: "Illegal use of FLAGS register",                                  \
+                     5: "Illegal Immediate values (less than 0 or more than 255)",                                      \
+                     6: "Misuse of labels as variables or vice-versa", 7: "Variables not declared at the beginning",    \
+                     8: "Missing hlt instruction", 9: "hlt not being used as the last instruction",                     \
+                     10: "Wrong syntax used for instructions",                                                          \
+                     11: "Immediate is not numerical",                                                                  \
+                     12: "Not enough arguments"}
+
 
     # Checking semantics type & OP code
     syntax = user_input.split()
     instruction_name = syntax[0]
     if instruction_name in semantics_op_dict:
         op_code = semantics_op_dict[instruction_name]
+        #print(f"{op_code=}")
         assembly_code.append(op_code)
     else:
         error = 1
@@ -137,7 +137,7 @@ def assembler(user_input):
 
         reg1 = syntax[1]
         imm = syntax[2]
-        if reg1 == FLAGS:
+        if reg1 == "FLAGS":
             error = 4
             print(f'{user_input} shows error: {error_mapping[error]}') 
             exit()
@@ -191,12 +191,19 @@ def assembler(user_input):
             error = 12
             print(f'{user_input} generates error: {error_mapping[error]}') 
             exit()
-
         reg1 = syntax[1]
         value = syntax[2]
         if value in variables:
             mem_addr = variables[value]
-        if reg1 == FLAGS:
+        elif value in labels:
+            error = 6
+            print(f'{user_input} shows error: {error_mapping[error]}') 
+            exit()
+        else:
+            error = 2
+            print(f'{user_input} shows error: {error_mapping[error]}') 
+            exit()
+        if reg1 == "FLAGS":
             error = 4
             print(f'{user_input} shows error: {error_mapping[error]}') 
             exit()
@@ -232,3 +239,23 @@ def assembler(user_input):
     elif op_code == '10011':
         assembly_code.append("00000000000")
     return assembly_code
+
+# print, store
+binary_byte_code = []
+for code_pro_max in source_code:
+    #binary_byte_code.extend(assembler(code_pro_max))
+    binary_byte_code.append(assembler(code_pro_max))
+
+this_assembly_code = ""
+for i in range(len(binary_byte_code)):
+    #this_assembly_code += ''.join(binary_byte_code[i]) + ""
+    this_assembly_code += ''.join(binary_byte_code[i]) + "\n"
+
+# error detection and syntax printing
+print(this_assembly_code)
+
+
+print("DEBUG OUTPUT")
+#print(f"{binary_byte_code=}")
+print(f"{variables}")
+print(f"{labels=}")
