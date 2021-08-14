@@ -275,10 +275,11 @@ for i in range(len(binary_byte_code)):
     this_assembly_code += ''.join(binary_byte_code[i]) + "\n"
     # If this line is throwing error, its not because its wrong
     # its because assembler() return wrong output. fix assembler()
-'''
+
 # error detection and syntax printing
 print(this_assembly_code)
 
+'''
 print("DEBUG OUTPUT")
 #print(f"{binary_byte_code=}")
 print(f"{variables}")
