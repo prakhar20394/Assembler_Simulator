@@ -8,7 +8,7 @@ def get_linenumber():
 
 def outputError(user_input, error_code, line_number):
     print(f'{user_input} generates error: {error_mapping[error_code]}') 
-    print(f'Error generated at {line_number=}.')
+    #print(f'Error generated at {line_number=}.')
     exit()
 
 # initialising the values
@@ -26,7 +26,7 @@ semantics_op_dict = {'st': '00101', 'ld': '00100', 'add': '00000', 'sub': '00001
 register_address = {"R0": "000", "R1": "001", "R2": "010", "R3": "011", "R4": "100", "R5": "101", "R6": "110",      \
                     "FLAGS": "111"}
 
-error_mapping = {0: "No error", 1: "Typos in instruction name or register name", 2: "Use of undefined variables",   \
+error_mapping = {0: "No error", 1: "Typos in instruction name or register name or labels", 2: "Use of undefined variables",   \
                  3: "Use of undefined labels", 4: "Illegal use of FLAGS register",                                  \
                  5: "Illegal Immediate values (less than 0 or more than 255)",                                      \
                  6: "Misuse of labels as variables or vice-versa", 7: "Variables not declared at the beginning",    \
@@ -43,8 +43,12 @@ for i in range(syntax_count):
     temp_array = source_code[i].split()
     if temp_array[0] == "var":
         try:
-            variables[temp_array[1]] = format(syntax_count + counter, "08b")
-            counter += 1
+            if temp_array[1] not in variables:
+                variables[temp_array[1]] = format(syntax_count + counter, "08b")
+                counter += 1
+            else:
+                print(f'Variable generates error: Variable already defined') 
+            exit()
         except:
             print(f'Variable generates error: Empty variable condition') 
             exit()
@@ -68,7 +72,11 @@ for i in range(len(source_code)):
     # Note: Is label:add R3 R2 R1 a valid label?
     code_pro = source_code[i].split()
     if code_pro[0][-1] == ":":
-        labels[code_pro[0][:-1]] = format(i, "08b")
+        if code_pro[0][:-1] not in labels:
+            labels[code_pro[0][:-1]] = format(i, "08b")
+        else:
+            print(f'The line {i} generates error: More than 1 address has same label')
+            exit()
         
 
 # gives error if the last entry is not halt
