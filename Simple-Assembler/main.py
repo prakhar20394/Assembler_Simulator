@@ -50,7 +50,9 @@ original_src = source_code
 # remove blank lines, returns a list
 source_code = [k.strip() for k in source_code if k.strip() != '']
 
-semantics_op_dict = {"mov": "chillz", 'st': '00101', 'ld': '00100', 'add': '00000', 'sub': '00001', 'mul': '00110', 'xor': '01010',  \
+semantics_array = ['st', 'ld', 'add', 'sub', 'mul', 'xor', 'or', 'and', 'div', 'rs', 'ls', 'not','cmp', 'jmp', 'jlt', 'jgt', 'je', 'hlt', 'mov']
+
+semantics_op_dict = {'st': '00101', 'ld': '00100', 'add': '00000', 'sub': '00001', 'mul': '00110', 'xor': '01010',  \
                      'or': '01011', 'and': '01100', 'div': '00111', 'rs': '01000', 'ls': '01001', 'not': '01101',   \
                      'cmp': '01110', 'jmp': '01111', 'jlt': '10000', 'jgt': '10001', 'je': '10010', 'hlt': '10011'}
 
@@ -101,7 +103,7 @@ for i in range(syntax_count):
             if temp_array[1] not in variables and temp_array[1] not in semantics_op_dict:
                 variables[temp_array[1]] = format(syntax_count + counter -1, "08b")
                 counter += 1
-            elif temp_array[1] in semantics_op_dict:
+            elif temp_array[1] in semantics_array:
                 outputError(source_code[i], f'Variable name same as instruction')
                 #exit()
             else:
@@ -137,7 +139,7 @@ for i in range(len(source_code)):
                 #exit()
                 outputErrorLabel(code_pro[0][:-1], 15)
 
-        elif code_pro[0][:-1] in semantics_op_dict:
+        elif code_pro[0][:-1] in semantics_array:
             #print(f'Label generates error: Label name same as instruction')
             #exit()
             outputErrorLabel(code_pro[0][:-1], 'Label name same as instruction')
@@ -349,9 +351,7 @@ for i in range(len(binary_byte_code)):
 # error detection and syntax printing
 print(this_assembly_code)
 #mast print command
-
 # debug system
-
 '''
 print("DEBUG OUTPUT")
 #print(f"{binary_byte_code=}")
