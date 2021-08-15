@@ -8,9 +8,37 @@ def get_linenumber():
 #def exit():
 #   print("Exit was called")
 
-def outputError(user_input, error_code, line_number):
-    print(f'{user_input} generates error: {error_mapping[error_code]}') 
-    #print(f'Error generated at {line_number=}.')
+def outputError(user_input, error_code, line_number=1):
+    # Cannot output error related to labels
+    line_number = 1
+    global original_src
+    for i,x in enumerate(original_src):
+        if ':' in x:
+            x = x[x.find(':')+1:].strip()
+        if user_input.strip() == x:
+            line_number = i + 1
+            break
+    if (str(error_code).isdigit()):
+        print(f'"{original_src[line_number-1]}" generates error: {error_mapping[error_code]}') 
+    else:
+        print(f'"{original_src[line_number-1]}" generates error: {error_code}') 
+    print(f'\nError generated at Line "{line_number}".')
+    exit()
+
+def outputErrorLabel(user_input, error_code, line_number=1):
+    # Can output error related to labels
+    print(f'{user_input=}')
+    line_number = 1
+    global original_src
+    for i,x in enumerate(original_src):
+        if user_input.strip() in x.split() and ':' in x.split() and x.split().index(':') > x.split().index(user_input.strip()):
+            line_number = i + 1
+            break
+    if (str(error_code).isdigit()):
+        print(f'"{original_src[line_number-1]}" generates error: {error_mapping[error_code]}') 
+    else:
+        print(f'"{original_src[line_number-1]}" generates error: {error_code}') 
+    print(f'\nError generated at Line "{line_number}".')
     exit()
 
 # initialising the values
@@ -18,10 +46,11 @@ variables = {}
 labels = {}
 
 source_code = sys.stdin.read().split("\n")
+original_src = source_code
 # remove blank lines, returns a list
 source_code = [k.strip() for k in source_code if k.strip() != '']
 
-semantics_op_dict = {'st': '00101', 'ld': '00100', 'add': '00000', 'sub': '00001', 'mul': '00110', 'xor': '01010',  \
+semantics_op_dict = {"mov": "chillz", 'st': '00101', 'ld': '00100', 'add': '00000', 'sub': '00001', 'mul': '00110', 'xor': '01010',  \
                      'or': '01011', 'and': '01100', 'div': '00111', 'rs': '01000', 'ls': '01001', 'not': '01101',   \
                      'cmp': '01110', 'jmp': '01111', 'jlt': '10000', 'jgt': '10001', 'je': '10010', 'hlt': '10011'}
 
@@ -36,10 +65,10 @@ error_mapping = {0: "No error", 1: "Typos in instruction name or register name o
                  10: "Wrong syntax used for instructions",                                                          \
                  11: "Immediate is not numerical",                                                                  \
                  12: "Not enough arguments", 13: "Label already exists", 14: "Empty variable condition",            \
-                 15: "Empty label condition", 16: "Memory address is not numerical"}
+                 15: "Empty label condition", 16: "Memory address is not numerical", 17: "hlt goes alone", }
 
 if len(source_code)==0:
-    print(f'error:Empty file')
+    print(f'Error Generated:Empty file')
     exit()
 
 # gives error if the last entry is not halt
@@ -58,8 +87,7 @@ for i in range(len(source_code)):
     
     if source_code[i] == "hlt":
         if i != (len(source_code) - 1):
-            print(f'The code generates error: hlt not being used as the last instruction(used in between)')
-            exit()
+            outputError(f'The code generates error: hlt not being used as the last instruction(used in between)', "hlt")
 
 # variables 
 counter = 0
@@ -67,22 +95,22 @@ syntax_count = len(source_code)
 for i in range(syntax_count):
     temp_array = source_code[i].split()
     if temp_array[0] == "var":
+        if len(temp_array)!=2:
+            outputError(source_code[i], f'var needs only 1 argument')
         try:
             if temp_array[1] not in variables and temp_array[1] not in semantics_op_dict:
                 variables[temp_array[1]] = format(syntax_count + counter -1, "08b")
                 counter += 1
             elif temp_array[1] in semantics_op_dict:
-                print(f'Variable generates error: Variable name same as instruction')
-            elif temp_array[1]==0:
-                print(f'Error:Empty variable')
-                exit()
+                outputError(source_code[i], f'Variable name same as instruction')
+                #exit()
             else:
-                print(f'Variable generates error: Variable already defined') 
-                exit()
+                outputError(source_code[i], f'Variable already defined') 
+                #exit()
         except Exception as e:
             #print(e)
-            print(f'Variable generates error: Empty variable condition') 
-            exit()      
+            outputError(source_code[i], f'Empty variable condition') 
+            #exit()      
     
     else:
         break
@@ -105,14 +133,19 @@ for i in range(len(source_code)):
             if len(code_pro[0][:-1]) != 0:
                 labels[code_pro[0][:-1]] = format(i, "08b")
             else:
-                print(f'Label line{i} generates error: Label is empty')
-                exit()
+                #print(f'Label line{i} generates error: Label is empty')
+                #exit()
+                outputErrorLabel(code_pro[0][:-1], 15)
+
         elif code_pro[0][:-1] in semantics_op_dict:
-            print(f'Label generates error: Label name same as instruction')
-            exit()
+            #print(f'Label generates error: Label name same as instruction')
+            #exit()
+            outputErrorLabel(code_pro[0][:-1], 'Label name same as instruction')
+
         else:
-            print(f'The line {i} generates error: More than 1 address has same label or is instruction syntax')
-            exit()
+            outputErrorLabel(code_pro[0][:-1], 'More than 1 address has same label or is instruction syntax')
+            #print(f'The line {i} generates error: More than 1 address has same label or is instruction syntax')
+            #exit()
 
 # gives error if the last entry is not halt
 if source_code[-1] != "hlt":
@@ -130,7 +163,7 @@ for i in range(len(source_code)):
     
     if source_code[i] == "hlt":
         if i != (len(source_code) - 1):
-            print(f'The code generates error: hlt not being used as the last instruction(used in between)')
+            outputError('hlt', f'hlt not being used as the last instruction(used in between)')
             exit()
 
 
@@ -292,6 +325,8 @@ def assembler(user_input):
     # 123
     # F
     elif op_code == '10011':
+        if len(syntax) != 1:
+            outputError(user_input, 17, get_linenumber())
         assembly_code.append("00000000000")
     else :
         outputError(user_input, 10, get_linenumber())
@@ -313,6 +348,9 @@ for i in range(len(binary_byte_code)):
 
 # error detection and syntax printing
 print(this_assembly_code)
+#mast print command
+
+# debug system
 
 '''
 print("DEBUG OUTPUT")
