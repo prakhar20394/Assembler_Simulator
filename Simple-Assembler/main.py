@@ -38,6 +38,10 @@ error_mapping = {0: "No error", 1: "Typos in instruction name or register name o
                  12: "Not enough arguments", 13: "Label already exists", 14: "Empty variable condition",            \
                  15: "Empty label condition", 16: "Memory address is not numerical"}
 
+if len(source_code)==0:
+    print(f'error:Empty file')
+    exit()
+
 # gives error if the last entry is not halt
 if source_code[-1] != "hlt":
     if ":" in source_code[-1]:
@@ -64,17 +68,22 @@ for i in range(syntax_count):
     temp_array = source_code[i].split()
     if temp_array[0] == "var":
         try:
-            if temp_array[1] not in variables:
+            if temp_array[1] not in variables and temp_array[1] not in semantics_op_dict:
                 variables[temp_array[1]] = format(syntax_count + counter -1, "08b")
                 counter += 1
+            elif temp_array[1] in semantics_op_dict:
+                print(f'Variable generates error: Variable name same as instruction')
+            elif temp_array[1]==0:
+                print(f'Error:Empty variable')
+                exit()
             else:
                 print(f'Variable generates error: Variable already defined') 
                 exit()
         except Exception as e:
-            print(e)
+            #print(e)
             print(f'Variable generates error: Empty variable condition') 
             exit()      
-    #elif source_code[i][0] in semantics_op_dict:
+    
     else:
         break
 
@@ -92,13 +101,37 @@ for i in range(len(source_code)):
     # Note: Is label:add R3 R2 R1 a valid label?
     code_pro = source_code[i].split()
     if code_pro[0][-1] == ":":
-        if code_pro[0][:-1] not in labels:
-            labels[code_pro[0][:-1]] = format(i, "08b")
-        else:
-            print(f'The line {i} generates error: More than 1 address has same label')
+        if code_pro[0][:-1] not in labels and code_pro[0][:-1] not in semantics_op_dict:
+            if len(code_pro[0][:-1]) != 0:
+                labels[code_pro[0][:-1]] = format(i, "08b")
+            else:
+                print(f'Label line{i} generates error: Label is empty')
+                exit()
+        elif code_pro[0][:-1] in semantics_op_dict:
+            print(f'Label generates error: Label name same as instruction')
             exit()
-        
+        else:
+            print(f'The line {i} generates error: More than 1 address has same label or is instruction syntax')
+            exit()
 
+# gives error if the last entry is not halt
+if source_code[-1] != "hlt":
+    if ":" in source_code[-1]:
+        code_pro_max_T = source_code[-1].split()
+        if code_pro_max_T[-1] != 'hlt':
+            print(f'The code generates error: Missing hlt instruction at end')
+            exit()
+    else:
+        print(f'The code generates error: Missing hlt instruction at end')
+        exit()
+
+#checks if there is halt in between
+for i in range(len(source_code)):
+    
+    if source_code[i] == "hlt":
+        if i != (len(source_code) - 1):
+            print(f'The code generates error: hlt not being used as the last instruction(used in between)')
+            exit()
 
 
 def assembler(user_input):
