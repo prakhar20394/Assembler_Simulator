@@ -2,24 +2,6 @@ import sys
 import numpy as np
 import matplotlib.pyplot as matplot
 
-'''
-Remaining tasks:
-
- - Bonus
-
-
-======================================================================================
-######################################################################################
-======================================================================================
-'''
-'''
-_print = print
-
-def print(*s, end='\n'):
-    _print(*s, end=end)
-    _print(*s, end=end, file=sys.stderr)
-'''
-
 
 def main():
     
@@ -29,14 +11,19 @@ def main():
     global PC
     global EE
     global RF
+    global x_list
+    global y_list
+    global cycle
 
+    x_list = []
+    y_list = []
+    cycle=0
     # Memory contains (code + variables)
     # Memory ~ RAM
     # heavy programs use more RAM on your laptop because they have big code + more variables
-    MEM =   Memory(user_input)
+    MEM =   Memory(user_input.strip())
 
     # ProgramCounter object keeps track of what line of code is running
-    global PC
     PC  =   ProgramCounter(0)
 
     # ExecutionEngine ~ ALU of the CPU
@@ -67,9 +54,8 @@ def main():
     
     # Print all contents of memory
     MEM.dump()
-
-    '''# Prints Scatter graph
-    bonus_scatter_plot()'''
+    
+    plotgraph(x_list, y_list)
 
 # ================================
 # CLASSES
@@ -98,6 +84,9 @@ class Memory():
             address = convertToDecimal(address)
         if type(address) == ProgramCounter:
             address = address.value
+        
+        addpoint(cycle, address)
+
         return self.data[address]
     
     def set(self, address, value):
@@ -112,7 +101,9 @@ class Memory():
         if type(address) == str:
             address = convertToDecimal(address)
         self.data[address] = value
-    
+
+        addpoint(cycle, address)
+
     def dump(self):
         # Print contents of memory as output
         print()
@@ -135,6 +126,9 @@ class ProgramCounter():
     def update(self, new_PC):
         # Set PC to next instruction
         self.value = new_PC
+                                                                                                                         
+        global cycle 
+        cycle +=1
 
 
 class ExecutionEngine():
@@ -211,7 +205,7 @@ class ExecutionEngine():
         result = RF.get(source1) + RF.get(source2)
 
         if result > 65535:
-            result %= 65535
+            result %= 65536
             RF.setOverflow()
 
         RF.set(destination, result)
@@ -312,7 +306,7 @@ class ExecutionEngine():
         result = RF.get(source1) * RF.get(source2)
 
         if result > 65535:
-            result %= 65535
+            result %= 65536
             RF.setOverflow()
 
         RF.set(destination, result)
@@ -520,6 +514,7 @@ class ExecutionEngine():
         # Type F
 
         unused_bits = None
+        RF.clearFlags()
         
         self.new_state['halted'] = True
         self.new_state['PC'] = PC.value + 1
@@ -541,7 +536,7 @@ class RegisterFile():
         # Fancy way of printing all registers to output
 
         # it just prints the list in binary format
-        print(' '.join(map(convertToBinary, self.data)))
+        print(' '.join(map(convertToBinary, self.data)), end=' \n')
 
 
     def get(self, address):
@@ -620,7 +615,6 @@ class RegisterFile():
         self.data[-1] |= 1<<3
 
 
-
 # ================================
 # HELPER FUNCTIONS
 # ================================
@@ -665,20 +659,23 @@ def cmp(a, b):
     # cmp(3,10) = -1 because 3 < 10
     return (a > b) - (a < b) 
 
-def bonus_scatter_plot(cycle_number, memory_address):
+def addpoint(x,y):
+    x_list.append(x)
+    y_list.append(y)
 
-    x = range(cycle_number)
-    y = x
-    matplot.scatter(x, y, c='red')
-    matplot.title('Scatter plot')
+def plotgraph(x_list, y_list):
+    matplot.scatter(x_list, y_list, c='red')
+    matplot.title('Memory Access trace Scatter plot')
     matplot.xlabel('Cycle Number')
     matplot.ylabel('Memory Address')
     matplot.show()
+    matplot.savefig("Graph.jpg")
 
-    
+
 # ================================
 # END
 # ================================
 
 if __name__ == "__main__":
     main()
+

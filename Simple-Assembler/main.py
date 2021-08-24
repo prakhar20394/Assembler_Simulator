@@ -86,14 +86,14 @@ if source_code[-1] != "hlt":
 
 #checks if there is halt in between
 for i in range(len(source_code)):
-    
-    if source_code[i] == "hlt":
+    if source_code[i][source_code[i].find(':')+1:].strip() == "hlt":
         if i != (len(source_code) - 1):
             outputError(f'The code generates error: hlt not being used as the last instruction(used in between)', "hlt")
 
 # variables 
 counter = 0
 syntax_count = len(source_code)
+
 for i in range(syntax_count):
     temp_array = source_code[i].split()
     if temp_array[0] == "var":
@@ -101,7 +101,7 @@ for i in range(syntax_count):
             outputError(source_code[i], f'var needs only 1 argument')
         try:
             if temp_array[1] not in variables and temp_array[1] not in semantics_op_dict:
-                variables[temp_array[1]] = format(syntax_count + counter -1, "08b")
+                variables[temp_array[1]] = counter
                 counter += 1
             elif temp_array[1] in semantics_array:
                 outputError(source_code[i], f'Variable name same as instruction')
@@ -113,12 +113,16 @@ for i in range(syntax_count):
             #print(e)
             outputError(source_code[i], f'Empty variable condition') 
             #exit()      
-    
     else:
         break
 
+# i == counter
 source_code = source_code[i:]
 syntax_count = len(source_code)
+
+for v in variables:
+	variables[v] += syntax_count
+	variables[v] = format(variables[v], "08b")
 
 for i in range(syntax_count):
     temp_array = source_code[i].split()
@@ -169,19 +173,24 @@ for i in range(len(source_code)):
             exit()
 
 
+hltFound = False
+
 def assembler(user_input):
     # value Initialisation
     #print(f"{source_code=}")
     reg1, reg2, reg3, reg4, mem_addr, imm = 0,0,0,0,0,0
     assembly_code = []
 
+    global hltFound
+
     # Checking semantics type & OP code
     if ':' in user_input:
         user_input = user_input[user_input.find(':')+1:].strip()
 
     syntax = user_input.split()
+
     try: 
-        instruction_name = syntax[0]
+        instruction_name = syntax[0].strip()
     except:
         print(f'The code generates error: Empty label condition')
         exit()
@@ -337,6 +346,7 @@ def assembler(user_input):
 
 # print, store
 binary_byte_code = []
+
 for code_pro_max in source_code:
     #binary_byte_code.extend(assembler(code_pro_max))
     binary_byte_code.append(assembler(code_pro_max))
@@ -354,16 +364,7 @@ print(this_assembly_code)
 # debug system
 '''
 print("DEBUG OUTPUT")
-#print(f"{binary_byte_code=}")
+print(f"{binary_byte_code=}")
 print(f"{variables}")
 print(f"{labels=}")
-'''
-'''
-# Remove label
-asm_string = "label: mov R3 R2"
-print(f"{asm_string=}")
-if ':' in asm_string:
-    print(f"{asm_string[asm_string.find(':')+1:].strip()=}")
-else:
-    print(f"{asm_string=}")
 '''
